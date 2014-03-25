@@ -1,139 +1,249 @@
 <!doctype html>
 <html>
   <head>
-  	<title>GAME OF HEROIC LIFE</title>
-  	<script src='js/seedrandom.min.js'></script>
+    <title>GAME OF HEROIC LIFE</title>
+    <script src='js/seedrandom.min.js'></script>
     <script src='js/p5.js'></script>
-	<script src='js/sketch.js'></script>
+    <script src='js/sketch.js'></script>
     <style>
-		@font-face {
-			font-family: Fipps;
-			src: url('Fipps-Regular.otf');
-		}
+      @font-face {
+        font-family: Fipps;
+        src: url('Fipps-Regular.otf');
+      }
 
-		@font-face {
-			font-family: Volter;
-			src: url('Volter__28Goldfish_29.ttf');
-		}
+      @font-face {
+        font-family:        Volter;
+        src:                url('Volter__28Goldfish_29.ttf');
+      }
 
-    	body {
-    		background-color:	#BA381F;
-    		font-family:		Volter, Courier, monospace;
-    	}
-		h1 {
-			color:				white;
-			font-weight:		lighter;
-		}
-		a {
-			color:				white;
-		}
-    	#title {
-			background-color:	none;
-    		font-family:		Volter, Courier, monospace;
-			text-align:			center;
-			font-size:			100%;
-			float:				center;
-			color:				gray;
-			position:			absolute;
-			left:				15%;
-			right:				15%;
-			top:				0%;
-			height:				10%;
-		}
-    	#gameContainer {
-    		background-color:	none;
-    		position:			absolute;
-    		top:				10%;
-    		left:				15%;
-    		right:				15%;
-    	}
-    	#monitor {
-			background-color:	white;
-			color:				#BA381F;
-			text-align:			left;
-			float:				center;
-			position:			absolute;
-			left:				15%;
-			right:				60%;
-    	}
-    	#console {
-			background-color:	none;
-			color:				#BA381F;
-			text-align:			left;
-			float:				center;
-			line-height: 		140%;
-			position:			absolute;
-			left:				40%;
-			right:				15%;
-    	}
-    	#footer {
-			background-color:	none;
-			color:				white;
-			text-align:			center;
-			float:				center;
-			position:			absolute;
-			margin-top:			10px;
-			left:				15%;
-			right:				15%;
-    	}
-    	input[type='text'] {
-    		border:				1px dotted #999;
-    		border-radius: 		0;
-    		-webkit-appearance:	none;
-    		font-family: 		inherit;
-    		font-size:			80%;
-    	}
-    	input[type='button'] {
-    		border:				1px dotted #999;
-    		border-radius: 		0;
-    		background-color: 	#FFFFFF;
-    		-webkit-appearance:	none;
-    		font-family: 		inherit;
-    		font-size:			80%;
-    	}
-    	select {
-    		width:				50px;
-    		border:				1px dotted #999;
-    		border-radius: 		5;
-    		-webkit-appearance:	none;
-    		font-family: 		inherit;
-    		font-size:			80%;
-    	}
+      body {
+        /* background-color:   #0FA8BA; */
+        background-color:   #333;
+        font-family:        Volter, Courier, monospace;
+      }
+      h1 {
+        color:              white;
+        font-weight:        lighter;
+      }
+      a {
+        color:              white;
+      }
+      #title {
+        background-color:   none;
+        font-family:        Volter, Courier, monospace;
+        text-align:         center;
+        font-size:          100%;
+        float:              center;
+        color:              gray;
+        position:           absolute;
+        left:               15%;
+        right:              15%;
+        top:                0%;
+        height:             10%;
+      }
+      #topConsole {
+        background-color:   none;
+        position:           absolute;
+        left:               15%;
+        right:              15%;
+        bottom:             85%;
+        float:              bottom;
+      }
+      #gameContainer {
+        background-color:   none;
+        position:           absolute;
+        top:                15%;
+        left:               15%;
+        right:              15%;
+      }
+      #monitor {
+        background-color:   white;
+        /* color:              #0FA8BA; */
+        color:   #333;
+        text-align:         left;
+        float:              center;
+        position:           absolute;
+        left:               15%;
+        right:              60%;
+      }
+      #console {
+        background-color:   none;
+        /* color:              #0FA8BA; */
+        color:   #333;
+        text-align:         left;
+        float:              center;
+        line-height:        140%;
+        position:           absolute;
+        left:               40%;
+        right:              15%;
+      }
+      #footer {
+        background-color:   none;
+        color:              white;
+        text-align:         center;
+        float:              center;
+        position:           absolute;
+        margin-top:         10px;
+        left:               15%;
+        right:              15%;
+      }
+      #frame {
+        background-color:   #EEE;
+        color:              black;
+        position:           absolute;
+        left:               15%;
+        right:              15%;
+        padding:            15px 20px;
+        display:            none;
+      }
+      input[type='text'] {
+        border:             1px dotted #999;
+        border-radius:      0;
+        -webkit-appearance: none;
+        font-family:        inherit;
+        font-size:          80%;
+      }
+      input[type='button'] {
+        border:             1px dotted #999;
+        border-radius:      0;
+        background-color:   #FFFFFF;
+        -webkit-appearance: none;
+        font-family:        inherit;
+        font-size:          80%;
+      }
+      input[type='button']:hover {
+        border:             1px dotted #999;
+        border-radius:      0;
+        background-color:   #EEEEEE;
+        -webkit-appearance: none;
+        font-family:        inherit;
+        font-size:          80%;
+      }
+      input[type='button']:active {
+        border:             1px dotted #999;
+        border-radius:      0;
+        background-color:   #BBBBBB;
+        -webkit-appearance: none;
+        font-family:        inherit;
+        font-size:          80%;
+      }
+      select {
+        width:              50px;
+        border:             1px dotted #999;
+        border-radius:      5;
+        -webkit-appearance: none;
+        font-family:        inherit;
+        font-size:          80%;
+      }
+      li {
+        line-height:        180%;
+      }
+      .code {
+        background-color:   black;
+        color:              white;
+      }
     </style>
   </head>
   <body>
-  	<div id='title'><h1>GAME OF HEROIC LIFE</h1></div>
-  	<div id='gameContainer'></div>
-  	<div id='monitor'></div>
-  	<div id='console'>
-  		<span style='position: absolute; width: 100%; text-align: right; color: white;'>
-  			SEED
-  			<input id='seed' type='text' size='15' value='random' maxlength='20'>
-	  		<input id='new' type='button' value='NEW' onclick='startAnew(true)'>
-	  	</span><br />
-	  	<span style='position: absolute; width: 100%; text-align: right; color: white; font-size: 80%'>
-	  		* Changes apply once upon hitting<span style='font-size: 200%'>&#9757;</span>
-	  	</span>
-  		<!--
-  		<span style='position: absolute; width: 20%; background-color: inherit'>FPS <input id='framerate' type='text' size='1' value='5' maxlength='2'></span>
-  		<span style='position: absolute; left: 70%; width: 15%; text-align: center; background-color: inherit'>
-  			<select id='size'>
-  				<option value='tiny'>TINY</option>
-  				<option value='small'>SMALL</option>
-  				<option value='default'>DEFAULT</option>
-  				<option value='big'>BIG</option>
-  				<option value='huge'>HUGE</option>
-  			</select>
-  		</span>
-  		<span style='position: absolute; width: 100%; text-align: left; background-color: inherit'>
-  			<input id='mortal' type='checkbox' checked>MORTAL
-  		</span><br />
-  		<span style='position: absolute; width: 100%; text-align: right; font-size: 70%; background-color: inherit'>** Changes are applied on hitting "NEW"</span>
-  		-->
-  	</div>
-  	<div id='footer'>
-  		<a href='#'>RULES OF PLAY</a> | 
-  		<a href='http://jaewoong.info'>JAEWOONG</a>
-  	</div>
+    <div id='title'><h1>GAME OF HEROIC LIFE</h1></div>
+    <div id='topConsole'>
+        <input id='toggleLayer' type='button' value='TOGGLE LAYER' onclick='switchLayer()' />
+        <input id='toggleTile' type='button' value='TOGGLE TILEMODE' onclick='switchTile()' />
+    </div>
+    <div id='gameContainer'></div>
+    <div id='monitor'></div>
+    <div id='console'>
+      <span style='position: absolute; width: 100%; text-align: right; color: white;'>
+        SEED
+        <input id='seed' type='text' size='15' value='random' maxlength='20' onkeypress='return hitNew(event)' />
+        <input id='new' type='button' value='NEW' onclick='startAnew(true)' />
+      </span><br />
+      <span style='position: absolute; width: 100%; text-align: right; color: white; font-size: 80%'>
+        * Changes apply once upon hitting<span style='font-size: 200%'>&#9757;</span>
+      </span>
+      <!--
+      <span style='position: absolute; width: 20%; background-color: inherit'>FPS <input id='framerate' type='text' size='1' value='5' maxlength='2'></span>
+      <span style='position: absolute; left: 70%; width: 15%; text-align: center; background-color: inherit'>
+        <select id='size' />
+          <option value='tiny'>TINY</option>
+          <option value='small'>SMALL</option>
+          <option value='default'>DEFAULT</option>
+          <option value='big'>BIG</option>
+          <option value='huge'>HUGE</option>
+        </select>
+      </span>
+      <span style='position: absolute; width: 100%; text-align: left; background-color: inherit'>
+        <input id='mortal' type='checkbox' checked />MORTAL
+      </span><br />
+      <span style='position: absolute; width: 100%; text-align: right; font-size: 70%; background-color: inherit'>** Changes are applied on hitting "NEW"</span>
+      -->
+    </div>
+    <div id='footer'>
+      <a href='#'><span onclick='toggleRules()'>RULES OF PLAY</span></a> :: 
+      <a href='http://jaewoong.info' target='_blank'>JAEWOONG</a>
+    </div>
+    <div id='frame'>
+      <h3>Fundamental Rules</h3>
+      <ul>
+        <li>Everything is automatically done according to some principles</li>
+        <li>When a HERO catches up the EVIL LORD, the game ends</li>
+      </ul><br />
+      <h3>Legend</h3>
+      <ul>
+        <li>Tiles: there're 11 tiles weighing the level of evil/good on terrain<br />
+          <img src='img/tiles.png' style='max-width: 80%' /></li>
+        <li>Flows: there're 11 flows showing the level of evil/good beneath terrain<br />
+          <img src='img/flows.png' style='vertical-align: top' /></li>
+        <li>HERO, EVIL LORD, and MONUMENT: a MONUMENT is placed when a HERO dies<br />
+          <img src='img/hero.png' /><img src='img/evillord.png' /><img src='img/grave.png' /></li>
+      </ul><br />
+      <h3>Key Concepts</h3>
+      <ul>
+        <li>There are two layers for the world; upper and lower, or terrain and soul-field</li>
+        <li>On lower layer, cellular automata happens, making new generations over time</li>
+        <li>Upper layer is representation of 4 lower layer tiles(flows), and is affected by those flows</li>
+        <li>Neighboring tiles means 4 tiles surrounding a tile</li>
+      </ul><br />
+      <h3>Rules for Lower Layer, or Soul-Field</h3>
+      Lower layer can be described as a place where spiritual flow of human mind or nature occurs<br />
+      <ul>
+        <li>If a tile has more good/evil neighboring tiles than its counterpart, it steps one toward good/evil</li>
+        <li>If a goodness maxes out and it still needs to be better, it becomes level 1 evil tile, as if corruption happens within long peace</li>
+        <li>If a evilness maxes out and it still needs to be eviler, it becomes level 1 good tile, as if rebellion rises within severe oppression</li>
+      </ul><br />
+      <h3>Rules for Upper Layer, or Terrain</h3>
+      Upper layer is a place where fluctuation of lower layer becomes real world<br />
+      <ul>
+        <li>Assuming lower layer tiles as a value between -5 and 5, a terrain tile goes one step toward good/evil when a sum of its 4 bearing flow tiles goes more/less than 8/-8</li>
+        <li>If the sum is in between -8 and -4, or 4 and 8, the tile stays the same</li>
+        <li>Otherwise, the tile goes one step toward neutral, which is 0</li>
+      </ul><br />
+      <h3>Rules for HERO, EVIL LORD, and MONUMENT</h3>
+      <ul>
+        <li>HERO and EVIL LORD make terrain tiles that they're on into maximum level of good/evil tile, and make neighboring tiles into level 1 good/evil tiles</li>
+        <li>HERO and EVIL LORD look for the eviliest tile in their neighbors and go one step toward that tile, as if a HERO loves to risk his life and the EVIL LORD feels happy to be in his hideout, or a den</li>
+        <li>If there is no one and only eviliest tile, they look one tile further in the same 4 directions, and move to the tile if there's a single evilest tile</li>
+        <li>A HERO has a life point, and it decrements on HERO's every step</li>
+        <li>If a HERO runs out of his life, he dies leaving a MONUMENT, and a new HERO borns in a random place</li>
+        <li>MONUMENTS do not move but does the same thing with a HERO</li>
+      </ul><br />
+      <h3>More things under the hood</h3>
+      <ul>
+        <li>You can make use of random seed under the game screen; the same seed, the same game</li>
+        <li>Lower layer starts with random states, while upper layer starts from neutral state</li>
+        <li>Even if there's a single eviliest neighboring tile around a HERO and the EVIL LORD, they do not move if the tile they're now on is eviler</li>
+        <li>A HERO's initial life point is <span class='code'>( (Number of columns of lower layer)^2 + (Number of rows of lower layer)^2 )^(1/2)</span></li>
+        <li>Calculation sequence: HERO/EVIL LORD moves, HERO/EVIL LORD/MONUMENTS do their jobs, do automata for the lower layer, change the upper layer</li>
+        <li>If a HERO and the EVIL LORD crosses each other, cancel the EVIL LORD's movement, so that the HERO can catch up the EVIL LORD</li>
+      </ul><br />
+      <h3>Tweakable Features</h3>
+      You can tewak some features with Chrome's javascript console or likes of it
+      <ul>
+        <li><span class='code'>setFramerate(<em>integer</em>)</span> sets framerate</li>
+        <li><span class='code'>mortalHero = <em>boolean</em></span> enables/disables the life point element</li>
+        <li><span class='code'>heroicTrail = <em>boolean</em></span> enables/disables the MONUMENT feature</li>
+        <li>Enabling <span class='code'>cowardEvil = <em>boolean</em></span> will make the EVIL LORD much more dodgy; it makes the EVIL LORD moves first and a HERO later, which is the opposit by default</li>
+      </ul>
+    </div>
   </body>
 </html>

@@ -8,8 +8,13 @@ var cellW;
 var cellH;
 var gameover;
 var tileimg;
+var flowimg;
+var heroimg;
+var evillordimg;
+var monumentimg;
 var ctx;
 var randomSeed;
+var framerate;
 
 // Console swiethces
 var showWhich;
@@ -17,6 +22,7 @@ var mortalHero;
 var cowardEvil;
 var heroicTrail;
 var tileMode;
+var showRules;
 
 // Global records
 var time;
@@ -26,6 +32,7 @@ var numDead;
 var kamikaze;
 var anewTriggered;
 var newbornTriggered;
+var newgameTimer;
 
 // Tile data
 var lower;
@@ -48,21 +55,25 @@ function setup() {
 	var gcW = gc.offsetWidth;
 	var wOff = 0;
 	if(gcW > referenceWidth) {
-		wOff = gcW - referenceWidth;
+		wOff = (gcW - referenceWidth) * 0.5;
 		gcW = referenceWidth;
 	}
 	var gcH = gcW * ratio;
-	gc.setAttribute("style", "height: " + gcH + "px");
+	gc.setAttribute('style', 'height: ' + gcH + 'px');
 	createGraphics(gcW, gcH, false, 'gameContainer', 'gameCanvas');
-	document.getElementById('gameCanvas').setAttribute('style', 'position: absolute; left: ' + wOff*0.5 + 'px');
+	document.getElementById('gameCanvas').setAttribute('style', 'position: absolute; left: ' + wOff + 'px');
 
-	// Set monitor, console and footer's position
+	// Set topConsole, monitor, console and footer's position
+	var tco = document.getElementById('topConsole');
 	var mon = document.getElementById('monitor');
 	var con = document.getElementById('console');
 	var foo = document.getElementById('footer');
+	var fra = document.getElementById('frame');
+	tco.setAttribute('style', 'top: ' + (gc.offsetTop - tco.offsetHeight) + 'px;' + (wOff>0?('left: ' + (gc.offsetLeft + wOff) + 'px'):''));
 	mon.setAttribute('style', 'top: ' + (gc.offsetTop + gcH) + 'px;' + (wOff>0?('left: ' + (gc.offsetLeft + wOff) + 'px'):''));
 	con.setAttribute('style', 'top: ' + (gc.offsetTop + gcH) + 'px;' + (wOff>0?('right: ' + (document.documentElement.clientWidth - gc.offsetLeft - gc.offsetWidth + wOff) + 'px'):''));
 	foo.setAttribute('style', 'top: ' + (con.offsetTop + con.offsetHeight + 40) + 'px');
+	fra.setAttribute('style', 'top: ' + (foo.offsetTop + foo.offsetHeight + 40) + 'px');
 
 	// If document width/height changes, apply new size to everything
 	checkDocumentHeight(resizeCanvas);
@@ -71,10 +82,10 @@ function setup() {
 	startAnew(false);
 }
 
-function loadTileImages() {
+function loadTileImages(token) {
 	for(var i = 0; i < 11; i++) {
 		var img = new Image();
-		img.src = '/img/' + i + '.png';
+		img.src = 'img/' + (token?token:'') + i + '.png';
 		this.push(img);
 	}
 }
@@ -86,11 +97,11 @@ function initTiles() {
 	for(var y = 0; y < rows; y++) {
 		lower[y] = [];
 		lowerNextGen[y] = [];
-		upper[y] = [];
+		upper[Math.floor(y*0.5)] = [];
 		for(var x = 0; x < cols; x++) {
-			lower[y][x] = floor(Math.random()*11)-5;	// Lower layer starts with random values
-			lowerNextGen[y][x] = 0;						// Prepare next-generation lower layer
-			upper[y][x] = 0;							// Upper layer starts with 0
+			lower[y][x] = floor(Math.random()*11)-5;			// Lower layer starts with random values
+			lowerNextGen[y][x] = 0;								// Prepare next-generation lower layer
+			upper[Math.floor(y*0.5)][Math.floor(x*0.5)] = 0;	// Upper layer starts with 0
 		}
 	}
 }
@@ -118,10 +129,15 @@ function draw() {
 			stroke(200); strokeWeight(1);
 			for(var y = 0; y < rows; y++) {
 				for(var x = 0; x < cols; x++) {
-					if(lower[y][x] > 0) fill(map(lower[y][x], 0, 5, 255, 0), 255, 255);
-					else if(lower[y][x] < 0) fill(255, map(lower[y][x], 0, -5, 255, 0), 255);
-					else fill(255);
-					rect(x*cellW, y*cellH, cellW, cellH);
+					if(tileMode == 'rect') {
+						if(lower[y][x] > 0) fill(map(lower[y][x], 0, 5, 255, 0), 255, 255);
+						else if(lower[y][x] < 0) fill(255, map(lower[y][x], 0, -5, 255, 0), 255);
+						else fill(255);
+						rect(x*cellW, y*cellH, cellW, cellH);
+					} else if(tileMode == 'tile') {
+						if(lower[y][x]+5 < 0 || lower[y][x]+5 >= 11) console.log(lower[y][x]);
+						ctx.drawImage(flowimg[lower[y][x]+5], x*cellW, y*cellH, cellW, cellH);
+					}
 				}
 			}
 			break;
@@ -147,29 +163,37 @@ function draw() {
 	// Draw monuments
 	if(heroicTrail) {
 		stroke(255); strokeWeight(2); fill(0, 255, 0);
-		for(var i = 0; length = monuments.length, i < length; i++) rect(monuments[i].x*cellW*2, monuments[i].y*cellH*2, cellW*2, cellH*2);
+		for(var i = 0; length = monuments.length, i < length; i++) {
+			if(tileMode == 'rect') rect(monuments[i].x*cellW*2, monuments[i].y*cellH*2, cellW*2, cellH*2);
+			else if(tileMode == 'tile') ctx.drawImage(monumentimg, monuments[i].x*cellW*2, monuments[i].y*cellH*2, cellW*2, cellH*2)
+		}
 	}
 
 	// Draw NPCs
 	if(!kamikaze) {
-		stroke(55); strokeWeight(2);
-		fill(0); rect(evilLord.x*cellW*2, evilLord.y*cellH*2, cellW*2, cellH*2);
-		if(!newbornTriggered) { fill(255, 255, 0); rect(hero.x*cellW*2, hero.y*cellH*2, cellW*2, cellH*2); }
+		stroke(55); strokeWeight(2); fill(0);
+		if(tileMode == 'rect') rect(evilLord.x*cellW*2, evilLord.y*cellH*2, cellW*2, cellH*2);
+		else if(tileMode == 'tile') ctx.drawImage(evillordimg, evilLord.x*cellW*2, evilLord.y*cellH*2, cellW*2, cellH*2);
+
+		if(!newbornTriggered) {
+			if(tileMode == 'rect') { fill(255, 255, 0); rect(hero.x*cellW*2, hero.y*cellH*2, cellW*2, cellH*2); }
+			else if(tileMode == 'tile') ctx.drawImage(heroimg, hero.x*cellW*2, hero.y*cellH*2, cellW*2, cellH*2);
+		}
 	}
 
 	// Show monitor
 	var mon = document.getElementById('monitor');
 	mon.innerHTML = '<span style="position: absolute; width: 50%">TIME: ' + time + '</span>' +
-		(mortalHero ? '<span style="position: absolute; left: 50%">LIFE: ' + life + '</span><br />' +
-		'<span style="color: white; word-wrap: break-word; line-height: 160%; position: absolute; width: 100%">' + (function showDead(num) {
-			if(num > 0) return '&#9751;' + showDead(num-1);
-			else return '';
-		})(numDead) + '</span>'
-		: '');
+		(mortalHero ? ('<span style="position: absolute; left: 50%">LIFE: ' + life + '</span><br />' +
+					'<span style="color: white; word-wrap: break-word; line-height: 160%; position: absolute; width: 100%">' + (function showDead(num) {
+						if(num > 0) return '&#9751;' + showDead(num-1);
+						else return '';
+					})(numDead) + '</span>')
+			: '<br />');
 
 	if(gameover) {
 		if(!anewTriggered) {
-			var newgame = window.setTimeout(startAnew, 3000, [false]);
+			newgameTimer = window.setTimeout(startAnew, 3000, false);
 			anewTriggered = true;
 		}
 		return;
@@ -274,35 +298,37 @@ function draw() {
 	/** UNDERLYING DETAILED RULE: HERO does his job first, unless 'COWARD EVIL' switch is on **/
 	if(cowardEvil) { doEvilStuff.apply(evilLord); doHeroicStuff.apply(hero); } else { doHeroicStuff.apply(hero); doEvilStuff.apply(evilLord); }
 
-	// On HERO's death
-	life = startLife - hero.step;
-	/***** RULE 04(optional): Hero starts with life point, which is (rows^2+cols^2)^0.5, and consumes one on every step he makes *****/
-	/***** RULE 05(optional): When a hero runs out of his life, he disappears and a new hero appears on random position *****/
-	/***** RULE 06(optional): On hero's death, a monument appears which constantly does a job that hero would do *****/
-	if(life <= 0) {
-		if(!newbornTriggered) {
-			// Increment death count
-			numDead++;
+	if(mortalHero) {
+		// On HERO's death
+		life = startLife - hero.step;
+		/***** RULE 04(optional): Hero starts with life point, which is (rows^2+cols^2)^0.5, and consumes one on every step he makes *****/
+		/***** RULE 05(optional): When a hero runs out of his life, he disappears and a new hero appears on random position *****/
+		/***** RULE 06(optional): On hero's death, a monument appears which constantly does a job that hero would do *****/
+		if(life <= 0) {
+			if(!newbornTriggered) {
+				// Increment death count
+				numDead++;
 
-			// Leave monument if the option is on
-			if(heroicTrail) {
-				var m = { "x": hero.x, "y": hero.y };
-				monuments.push(m);
-			}
+				// Leave monument if the option is on
+				if(heroicTrail) {
+					var m = { "x": hero.x, "y": hero.y };
+					monuments.push(m);
+				}
 
-			if(!gameover) {
-				// Create new HERO
-				setTimeout(function() {
-					hero = { "x": floor(Math.random()*cols*0.5), "y": floor(Math.random()*rows*0.5), "step": 0 };
-					life = startLife - hero.step;
-					newbornTriggered = false;
-				}, 1000);
-				newbornTriggered = true;
-			} else {
-				// HERO slayed the EVIL LORD with his last breath
-				kamikaze = true;
-			}
-		} else return;
+				if(!gameover) {
+					// Create new HERO
+					setTimeout(function() {
+						hero = { "x": floor(Math.random()*cols*0.5), "y": floor(Math.random()*rows*0.5), "step": 0 };
+						life = startLife - hero.step;
+						newbornTriggered = false;
+					}, 1000);
+					newbornTriggered = true;
+				} else {
+					// HERO slayed the EVIL LORD with his last breath
+					kamikaze = true;
+				}
+			} else return;
+		}
 	}
 
 	// Monuments do its works
@@ -364,9 +390,9 @@ function draw() {
 			/***** RULE 01: Assuming lower layer cells as a value between -5 and 5, go one step toward good/evil when a sum of four bearing cells goes more/less than 10/-10 *****/
 			/***** RULE 02: If the sum is between -5 and 5, stay the same *****/
 			/***** RULE 03: If not, go one step toward neutral *****/
-			if(sum > 10) upper[y][x]++;
-			else if(sum < -10) upper[y][x]--;
-			else if(abs(sum) > 5) upper[y][x] += 0;
+			if(sum > 8) upper[y][x]++;
+			else if(sum < -8) upper[y][x]--;
+			else if(abs(sum) > 4) upper[y][x] += 0;
 			else if(upper[y][x] != 0) upper[y][x] -= upper[y][x]/Math.abs(upper[y][x]);
 
 			if(upper[y][x] < -5) upper[y][x] = -5;
@@ -380,9 +406,12 @@ function draw() {
 
 // Restart game with console settings
 function startAnew(hitbutton) {
+	// Disable timeout
+	clearTimeout(newgameTimer);
+
 	// Set framerate
 	background(255);
-	frameRate(3);
+	frameRate(framerate || 5);
 
 	// Set global values
 	rows = 5*8;
@@ -391,15 +420,24 @@ function startAnew(hitbutton) {
 	cellH = height / rows;
 	gameover = false;
 	tileimg = [];
+	flowimg = [];
 	loadTileImages.apply(tileimg);
+	loadTileImages.apply(flowimg, ['f']);
+	heroimg = new Image();
+	heroimg.src = 'img/hero.png';
+	evillordimg = new Image();
+	evillordimg.src = 'img/evillord.png';
+	monumentimg = new Image();
+	monumentimg.src = 'img/grave.png';
 	ctx = document.getElementById('gameCanvas').getContext('2d');
-	tileMode = 'rect';
+	tileMode = tileMode || 'tile';
 
 	// Set console switches into defualt
-	showWhich = 'upper';	// 'lower' and 'upper'
-	mortalHero = true;
-	cowardEvil = false;		// when turned on, hero do the job last so that evil lord can evade the hero
-	heroicTrail = true;		// when turned on, leave monuments when heroes die
+	showWhich = showWhich || 'upper';	// 'lower' and 'upper'
+	mortalHero = mortalHero || true;
+	cowardEvil = cowardEvil || false;		// when turned on, hero do the job last so that evil lord can evade the hero
+	heroicTrail = heroicTrail || true;		// when turned on, leave monuments when heroes die
+	showRules = showRules || false;
 
 	// Initialize record data
 	time = 0;
@@ -412,8 +450,13 @@ function startAnew(hitbutton) {
 
 	// Set random seed
 	var randomSeed = document.getElementById('seed').value;
-	if(hitbutton && randomSeed && randomSeed != '-- random --') Math.seedrandom(randomSeed);
-	else randomSeed = '-- random --', Math.seedrandom();
+	if(hitbutton) {
+		if(randomSeed == '-- random --') randomSeed = Math.seedrandom();
+		Math.seedrandom(randomSeed);
+	} else {
+		randomSeed = '-- random --';
+		Math.seedrandom();
+	}
 	document.getElementById('seed').value = randomSeed;
 
 	// Initialize tiles
@@ -423,6 +466,27 @@ function startAnew(hitbutton) {
 	hero = { "x": floor(Math.random()*cols*0.5), "y": floor(Math.random()*rows*0.5), "step": 0 };
 	evilLord = { "x": floor(Math.random()*cols*0.5), "y": floor(Math.random()*rows*0.5), "step": 0 };
 	monuments = [];
+}
+
+// Hitting enter in the seed text field will trigger startAnew()
+function hitNew(e) {
+	if(e.keyCode == 13) {
+		startAnew(true);
+		return false;
+	}
+}
+
+// Set framerate
+function setFramerate(fps) {
+	framerate = fps;
+	frameRate(fps);
+}
+
+// Show/hide rules of play
+function toggleRules() {
+	showRules = !showRules;
+	document.getElementById('frame').style.display = showRules ? 'inline' : 'none';
+	if(showRules) setTimeout(function(){ window.scrollBy(0, 200); }, 200);
 }
 
 // Detect change of document width/height
@@ -461,11 +525,15 @@ function resizeCanvas() {
 	cellW = width / cols;
 	cellH = height / rows;
 
-	// Set new top value for console and footer <div>
+	// Set new top value for <div>s
+	var tco = document.getElementById('topConsole');
 	var mon = document.getElementById('monitor');
 	var con = document.getElementById('console');
 	var foo = document.getElementById('footer');
+	var fra = document.getElementById('frame');
+	tco.setAttribute('style', 'top: ' + (gc.offsetTop - tco.offsetHeight) + 'px;' + (wOff>0?('left: ' + (gc.offsetLeft + wOff) + 'px'):''));
 	mon.setAttribute('style', 'top: ' + (gc.offsetTop + gcH) + 'px;' + (wOff>0?('left: ' + (gc.offsetLeft + wOff) + 'px'):''));
 	con.setAttribute('style', 'top: ' + (gc.offsetTop + gcH) + 'px;' + (wOff>0?('right: ' + (document.documentElement.clientWidth - gc.offsetLeft - gc.offsetWidth + wOff) + 'px'):''));
 	foo.setAttribute('style', 'top: ' + (con.offsetTop + con.offsetHeight + 40) + 'px');
+	fra.setAttribute('style', 'top: ' + (foo.offsetTop + foo.offsetHeight + 40) + 'px');
 }
